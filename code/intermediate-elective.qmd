@@ -48,11 +48,11 @@ aq_ins <- read_xlsx(
 
 ## 1. Explain your inspiration
 
-In 1-2 sentences each, describe:
+I was inspired by Steven Ponce’s “Evolution of MTA Art Materials (1980-2020)” because the figure's characteristics would allow me to show multiple metrics (average abundance/L for multiple invertebrate species) for each location at NCOS.
 
-- which visualization you chose for your inspiration
-- why it makes sense for your dataset of choice
-- which variables from your dataset will be shown in your visualization, and what visual components they map onto (axes, shapes, colors, etc.)
+This figure makes sense for the aquatic invertebrate data set because it allows for the separation of data by specific location at NCOS while still allowing for clear comparison of abundance between different species with distinct lines.
+
+The plot will be faceted by location, the x axis will be time by year and the y axis will be average abundance/L. Each plotted line will represent a different invertebrate species, and will be a different color. The species corresponding to each color will be indicated by a legend.
 
 ## 2. 
 
