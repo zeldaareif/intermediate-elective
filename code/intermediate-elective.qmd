@@ -8,13 +8,40 @@ format: pdf
 ## Packages
 
 ```{r}
+#| label: packages
 
+# general use
+library(tidyverse)
+
+# file organization
+library(here)
+
+# reading .xlsx files 
+library(readxl)
+
+# data visualization
+library(naniar)
+library(patchwork)
 ```
 
 ## Data
 
 ```{r}
+#| label: data
 
+# vegetation
+veg <- read_csv(here("data", "veg copy.csv"))
+
+# veg metadata
+metadata <- read_csv(here("data", "vp_veg_metadata.csv"))
+
+# taxonomic info
+taxon_list <- read_csv(here("data","taxon_list.csv"))
+
+# aquatic invertebrates
+aq_ins <- read_xlsx(
+  here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+  sheet = "Aquatic Insects")
 ```
 
 # Problems
