@@ -1,0 +1,20 @@
+---
+title: "Intermediate Elective"
+format: pdf
+---
+
+# Set Up
+
+## Packages
+
+```{r}
+
+```
+
+## Data
+
+```{r}
+
+```
+
+# Problems
