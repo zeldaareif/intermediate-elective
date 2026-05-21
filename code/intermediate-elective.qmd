@@ -84,122 +84,29 @@ native_spp <- veg |>
 sample(native_spp, 10)
 
 
-# define function to rename species
-categorize_species <- function(species_string) {
-  case_when(
-    species_string == "Helminthotheca_echioides" ~ "Bristly oxtongue",
-    species_string == "Erigeron_canadensis" ~ "Horseweed",
-    species_string == "Eryngium_vaseyi" ~ "Coyote-thistle",
-    species_string == "Hordeum_brachyantherum_brachy." ~ "Meadow barley",
-    species_string == "Festuca_myuros" ~ "Rat-tail fescue",
-    species_string == "Bromus_diandrus" ~ "Ripgut brome",
-    TRUE ~ "Other")}
 
 # create new object from veg
-veg_pc <- veg |>
-  # mutate to only include selected species
-  mutate(taxon_group = categorize_species(psoc)) |>
-  # filter to remove species not selected
-  filter(taxon_group != "Other") |>
-  # filtered to only include ncos vernal pool transects
-  filter(str_detect(transect_name, "VP") &
-         site == "ncos") |>
-  # grouped by species, transect, and year
-  group_by(taxon_group, transect_name, year) |>
-  # summarized by calculating total percent cover across all
-  # quadrats
-  summarise(
-    sum_pc = sum(percent_cover, na.rm = TRUE),
-    .groups = "drop") |>
-  # created column to join with metadata
-  unite("year_pool", year, transect_name, remove = TRUE) |>
-  # joined metadata data frame
-  left_join(metadata, by = "year_pool") |>
-  # calculated mean percent cover
-  mutate(mean_pc = sum_pc/num_quad)
-
-```
+native_pc <- veg |>
+# filter to only include native species
+filter(psoc %in% native_spp) |>
+# filtered to only include ncos vernal pool transects
+filter(str_detect(transect_name, "VP") &
+site == "ncos") |>
+group_by(transect_name, year) |>
+# summarized by calculating total percent cover across all
+# quadrats
+summarise(sum_pc = sum(percent_cover, na.rm = TRUE)) |>
+# un-grouped
+ungroup() |>
+# created column to join with metadata
+unite("year_pool", year, transect_name, remove = TRUE) |>
+# joined metadata data frame
+left_join(metadata, by = "year_pool") |>
+# calculated mean percent cover
+mutate(mean_pc = sum_pc/num_quad)
 
 
-```{r}
-#| label: plotting-parameters
 
-# get colors from national parks palette
-park_colors <- natparks.pals("Yosemite")
-
-# assign colors to species
-species_colors <- c(
-  "Bristly oxtongue" = park_colors[1],
-  "Horseweed" = park_colors[2],
-  "Coyote-thistle" = park_colors[3],
-  "Meadow barley" = park_colors[4],
-  "Rat-tail fescue" = park_colors[5],
-  "Ripgut brome" = park_colors[6]
-)
-
-### |- titles and caption ----
-title_text <- str_glue("Percent Cover of Selected Vernal Pool Species")
-subtitle_text <- str_glue("Mean percent cover across NCOS vernal pool transects")
-
-
-### |- plot theme ----
-
-# Start with base theme
-base_theme <- create_base_theme(colors)
-
-# Add weekly-specific theme elements
-weekly_theme <- extend_weekly_theme(
-  base_theme,
-  theme(
-    axis.line = element_blank(),
-    axis.ticks = element_blank(),
-
-    # Grid elements
-    panel.grid.major.y = element_line(
-      color = "gray90",
-      linetype = "solid",
-      linewidth = 0.3
-    ),
-    panel.grid.minor.y = element_blank(),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-
-    # Axis elements
-    axis.text = element_text(
-      color = colors$text,
-      size = rel(0.7)
-    ),
-    axis.title.x = element_text(
-      color = colors$text,
-      face = "bold",
-      size = rel(0.8),
-      margin = margin(t = 15)
-    ),
-    axis.title.y = element_text(
-      color = colors$text,
-      face = "bold",
-      size = rel(0.8),
-      margin = margin(r = 10)
-    ),
-
-    # Legend elements
-    legend.position = "plot",
-    legend.title = element_text(
-      family = fonts$tsubtitle,
-      color = colors$text,
-      size = rel(0.8),
-      face = "bold"
-    ),
-    legend.text = element_text(
-      family = fonts$tsubtitle,
-      color = colors$text,
-      size = rel(0.7)),
-
-    # Plot margin
-    plot.margin = margin(t = 15, r = 15, b = 15, l = 15)))
-
-# Set theme
-theme_set(weekly_theme)
 
 ```
 
@@ -209,55 +116,43 @@ theme_set(weekly_theme)
 #| fig-height: 9
 #| fig-width: 9
 
+  title_text <- "Total Native Percent Cover Over Time"
+subtitle_text <- "NCOS vernal pool transects"
+
+caption_text <- "Vegetation survey data"
+
+
+### |- plot ----
+
+
   ggplot(data = veg_pc,
-    mapping= aes(x = year, 
-                 y = mean_pc, 
-                 color = taxon_group)) +
+    mapping = aes(x = year, 
+                  y = mean_pc)) +
 
   # Geoms
-  geom_line(size = 1.3, alpha = 0.9) +
-
-  gghighlight(
-    use_direct_label = FALSE,
-    unhighlighted_params = list(
-      linewidth = 0.3,
-      alpha = 0.75,
-      color = "gray60"
-    )
-  ) +
+  geom_line(linewidth = 1.3, color = "#4A9782", alpha = 0.9) +
+  geom_point(color = "#4A9782", size = 2, alpha = 0.8) +
 
   # Scales
-  scale_color_manual(
-    values = species_colors,
-    guide = "none"
-  ) +
+  scale_x_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
 
-  scale_x_continuous(
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
+  # relabeling x- and y-axes, adding title
+  labs(x = "Year",
+      y = "Total Percent Cover",
+      title = "Total Native Species Percent Cover at NCOS 2021-25") +
 
-  scale_y_continuous(
-    expand = expansion(mult = c(0.0, 0.1))
-  ) +
 
-  # Labs
-  labs(
-    title = title_text,
-    subtitle = subtitle_text,
-    x = NULL,
-    y = "Mean Percent Cover"
-  ) +
-
-  # Facets (optional but usually helpful for species data)
-  facet_wrap(~taxon_group,
-              scales = "free_y",
-              ncol = 3) +
-
-  # Theme
+  # Theme (clean + stable)
+  theme_minimal() +
   theme(
-  plot.title = element_text(color = "black"),
-  plot.subtitle = element_text(color = "gray30"),
-  plot.caption = element_text(color = "gray40"))
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    plot.caption = element_text(size = 8),
+    axis.title = element_text(face = "bold")
+  )
+
+p
 ```
 
 ## 4. Describe your process
