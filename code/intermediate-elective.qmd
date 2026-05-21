@@ -50,11 +50,11 @@ aq_ins <- read_xlsx(
 
 ## 1. Explain your inspiration
 
-I was inspired by Steven Ponce’s “Evolution of MTA Art Materials (1980-2020)” because the figure's characteristics would allow me to show multiple metrics (average abundance/L for multiple invertebrate species) for each location at NCOS.
+I was inspired by Tobias Stalder’s “Hiking Locations in Washington” because the figure's characteristics would allow me to show average abundance/L for an invertebrate species for each location at NCOS.
 
-This figure makes sense for the aquatic invertebrate data set because it allows for the separation of data by specific location at NCOS while still allowing for clear comparison of abundance between different species with distinct lines.
+This figure makes sense for the aquatic invertebrate data set because it allows for the separation of data by specific location at NCOS while still allowing for clear comparison of abundance between different species with distinct differences in visual weight throughout the plot.
 
-The plot will be faceted by location, the x axis will be time by year and the y axis will be average abundance/L. Each plotted line will represent a different invertebrate species, and will be a different color. The species corresponding to each color will be indicated by a legend.
+For the plot, the x axis will be the location and the y axis will be average abundance/L. The species corresponding to each color will be indicated by a legend.
 
 ## 2. 
 
