@@ -67,9 +67,61 @@ Insert that sketch (as a photo, screenshot, or otherwise) into your document.
 ## 3. Code your figure
 
 ```{r}
+#| label: wrangling-veg
+
+# create new object from veg
+native_spp <- veg |>
+  # filter to only include native cover
+  filter(str_detect(cover_category, "NATIVE COVER")) |>
+  # filter by species
+  pull(psoc) |>
+  # list each unique native species
+  unique()
+
+# display 10 random species from data frame
+sample(native_spp, 10)
+
+
+# define function to rename species
+categorize_species <- function(species_string) {
+  case_when(
+    species_string == "Helminthotheca_echioides" ~ "Bristly oxtongue",
+    species_string == "Erigeron_canadensis" ~ "Horseweed",
+    species_string == "Eryngium_vaseyi" ~ "Coyote-thistle",
+    species_string == "Hordeum_brachyantherum_brachy." ~ "Meadow barley",
+    species_string == "Festuca_myuros" ~ "Rat-tail fescue",
+    species_string == "Bromus_diandrus" ~ "Ripgut brome",
+    TRUE ~ "Other")}
+
+# create new object from veg
+veg_pc <- veg |>
+  # mutate to only include selected species
+  mutate(taxon_group = categorize_species(psoc)) |>
+  # filter to remove species not selected
+  filter(taxon_group != "Other") |>
+  # filtered to only include ncos vernal pool transects
+  filter(str_detect(transect_name, "VP") &
+         site == "ncos") |>
+  # grouped by species, transect, and year
+  group_by(taxon_group, transect_name, year) |>
+  # summarized by calculating total percent cover across all
+  # quadrats
+  summarise(
+    sum_pc = sum(percent_cover, na.rm = TRUE),
+    .groups = "drop") |>
+  # created column to join with metadata
+  unite("year_pool", year, transect_name, remove = TRUE) |>
+  # joined metadata data frame
+  left_join(metadata, by = "year_pool") |>
+  # calculated mean percent cover
+  mutate(mean_pc = sum_pc/num_quad)
 
 ```
 
+
+```{r}
+#| label: plotting-
+```
 
 ## 4. Describe your process
 
