@@ -50,11 +50,11 @@ aq_ins <- read_xlsx(
 
 ## 1. Explain your inspiration
 
-I was inspired by Tobias Stalder’s “Hiking Locations in Washington” because the figure's characteristics would allow me to show average abundance/L for an invertebrate species for each location at NCOS.
+I was inspired by Steven Ponce’s “Evolution of MTA Art Materials (1980-2020)” because the figure's characteristics would allow me to show total percent cover of multiple vernal pool vegetation species through time, while highlighting one species per faceted plot.
 
-This figure makes sense for the aquatic invertebrate data set because it allows for the separation of data by specific location at NCOS while still allowing for clear comparison of abundance between different species with distinct differences in visual weight throughout the plot.
+This figure makes sense for the vernal pool vegetation data set because it allows for a clear comparison of total percent cover between different species with distinct lines.
 
-For the plot, the x axis will be the location and the y axis will be average abundance/L. The species corresponding to each color will be indicated by a legend.
+The plot will be faceted by vegetation species, the x axis will be time by year and the y axis will be total percent cover. Each plotted line will represent a different vernal pool vegetation species, and the species of interest's line will be highlighted with a different color to stand out. 
 
 ## 2. 
 
