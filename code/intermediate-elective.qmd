@@ -1,5 +1,7 @@
 ---
 title: "Intermediate Elective"
+author: "Zelda Reif"
+date: "2026-05-22"
 format: pdf
 ---
 
@@ -63,6 +65,11 @@ Insert that sketch (as a photo, screenshot, or otherwise) into your document.
 
 
 ## 3. Code your figure
+
+```{r}
+
+```
+
 
 ## 4. Describe your process
 
