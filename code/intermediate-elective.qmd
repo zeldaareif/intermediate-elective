@@ -246,8 +246,8 @@ ostracods_plot
 
 ## 4. Describe your process
 
-In 1-3 sentences each, describe:
+Using someone else's code to create a visualization was helpful in many ways to create the general shape of the plot, but in other ways it also made it more difficult for me to make my own edits and customizations to fit this unique data set because I was less familiar with how the geometries and scales were set up, having not coded them myself.
 
-- your process of using someone else’s code to create a visualization
-- challenges you encountered as you made your visualization
-- how your visualization differs from visualizations you made in class, for assignments, or for a previous elective
+The main challenge I encountered as I made my visualization was everything to do with the axes. I couldn't get the plot to keep the scale of the y axis I wanted, and I couldn't get the axis markers onto the actual circle lines like I intended or like in the inspiration plot by Stalder.
+
+This visualization is a spin on a typical jitter plot but the x axis, in this case site, is curved into a circle which flares the data points outwards in diferent directions for each site. It is most similar to the plot I made in Individual Assignment 5, with major transformations to the axes.
