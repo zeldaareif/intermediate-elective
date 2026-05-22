@@ -14,6 +14,8 @@ format: pdf
 
 # general use
 library(tidyverse)
+library(snakecase)
+library(janitor)
 
 # file organization
 library(here)
@@ -26,6 +28,8 @@ library(naniar)
 library(patchwork)
 library(NatParksPalettes)
 library(gghighlight)
+library(paletteer)
+library(ggplot2)
 ```
 
 ## Data
@@ -46,6 +50,13 @@ taxon_list <- read_csv(here("data","taxon_list.csv"))
 aq_ins <- read_xlsx(
   here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
   sheet = "Aquatic Insects")
+
+# site info
+sites <- read_xlsx(
+  here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+  sheet = "sites")
+
+
 ```
 
 # Problems
@@ -69,90 +80,172 @@ Insert that sketch (as a photo, screenshot, or otherwise) into your document.
 ## 3. Code your figure
 
 ```{r}
-#| label: wrangling-veg
+#| label: cleaning-data
 
-# create new object from veg
-native_spp <- veg |>
-  # filter to only include native cover
-  filter(str_detect(cover_category, "NATIVE COVER")) |>
-  # filter by species
-  pull(psoc) |>
-  # list each unique native species
-  unique()
+taxon_list_clean <- taxon_list |>
+  # convert taxon names to snakecase
+  mutate(verbatim_name = to_any_case(verbatim_name,
+  case = "snake"))
 
-# display 10 random species from data frame
-sample(native_spp, 10)
+# creating new object
+ncos_sites <- sites |>
+# filtering to only include ncos quarterly sampling sites
+filter(sector == "NCOS" & sampling_frequency == "Quarterly")
+
+# water quality
+water_quality <- read_xlsx(
+  here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+  sheet = "Water Quality",
+  na = c("", "n/a", "N/A", "over", "173+"))
+
+water_quality_clean <- water_quality |>
+  clean_names() |>
+  semi_join(ncos_sites, by = "site") |>
+  unite("date_site", date, site, remove = FALSE) |>
+  group_by(date, site, date_site) |>
+  summarize(med_ph = median(p_h, na.rm = TRUE),
+            med_sal = median(salinity_ppt, na.rm = TRUE),
+            med_do = median(dissolved_oxygen_mg_l, na.rm = TRUE)) |>
+  ungroup() |>
+  filter(date_site != "2022-08-12_NVBR")
+
+# creating new clean object from aquatic inverts
+aq_ins_clean <- aq_ins |>
+  # clean column names
+  clean_names() |>
+  # filtering join: only include sites occurring in ncos_sites
+  semi_join(ncos_sites, by = c("site")) |>
+  # renaming columns
+  rename(date = date_on_vial) |>
+  # select columns of interest
+  select(date, sample_type, site,
+        ostracod,
+        copepod,
+        hemiptera_corixidae_boatman,
+        cladocera,
+        nematode,
+        diptera_ceratopogonidae,
+        annelida_oligochaete,
+        diptera_chironomid,
+        annelida_polychaete) |>
+  # filter to only include "filtered beaker" samples
+  filter(sample_type %in% c("FB 250", "FB250")) |>
+  # convert the data frame to long format
+  pivot_longer(cols = ostracod:annelida_polychaete,
+              names_to = "taxon",
+              values_to = "abundance") |>
+  # group by date, site, taxon
+  group_by(date, site, taxon) |>
+  # calculate average abundance per liter (sum abundance divided by 7.5
+  # liters)↪
+  summarize(ave_lit = sum(abundance, na.rm = TRUE)/7.5) |>
+  # ungroup data frame
+  ungroup() |>
+  # create a new column called `date_site` to join with water quality
+  unite("date_site", date, site, remove = FALSE) |>
+  # join with water quality
+  left_join(
+  select(water_quality_clean,
+        date_site,
+        med_ph,
+        med_sal,
+        med_do),
+        by = "date_site") |>
+  # join with taxon list
+  left_join(taxon_list_clean, by = c("taxon" = "verbatim_name")) |>
+  # add full names of sites
+  mutate(site_full = case_when(
+        site == "NVBR" ~ "North of Venoco Bridge",
+        site == "NEC" ~ "South of Venoco Bridge",
+        site == "NMC" ~ "Main Channel",
+        site == "NPB" ~ "South of Phelps Bridge",
+        site == "NPB1" ~ "North of Phelps Bridge",
+        site == "NPB2" ~ "Phelps Road",
+        site == "NWP" ~ "West Pond",
+        site == "NDC" ~ "Devereux Creek")) |>
+  # setting factor levels for site
+  mutate(site_full = fct_reorder(site_full, med_sal, .fun = "median", .na_rm
+= TRUE),
+  site_full = fct_rev(site_full))
 
 
-
-# create new object from veg
-native_pc <- veg |>
-# filter to only include native species
-filter(psoc %in% native_spp) |>
-# filtered to only include ncos vernal pool transects
-filter(str_detect(transect_name, "VP") &
-site == "ncos") |>
-group_by(transect_name, year) |>
-# summarized by calculating total percent cover across all
-# quadrats
-summarise(sum_pc = sum(percent_cover, na.rm = TRUE)) |>
-# un-grouped
-ungroup() |>
-# created column to join with metadata
-unite("year_pool", year, transect_name, remove = TRUE) |>
-# joined metadata data frame
-left_join(metadata, by = "year_pool") |>
-# calculated mean percent cover
-mutate(mean_pc = sum_pc/num_quad)
-
-
-
+# creating new object from clean aquatic inverts
+copepods <- aq_ins_clean |>
+  # filter to only include copepods
+  filter(taxon == "copepod") |>
+  # log + 1 transform mean abundance per liter
+  mutate(log_ave_lit = log(ave_lit + 1))
 
 ```
 
+```{r}
+#| label: wrangling-aq-ins
+
+# create new object from aq_ins_clean
+ost_abundance <- aq_ins_clean |>
+  # filter to only ostracods
+  filter(taxon == "ostracod") |>
+  # remove missing abundance/L values
+  filter(!is.na(ave_lit)) |>
+  # group by site
+  group_by(site_full) |>
+  # log + 1 transform mean abundance per liter
+  mutate(log_ave_lit = log(ave_lit + 1)) |>
+  # ungroup data frame
+  ungroup()
+```
+
+
 
 ```{r}
-#| label: plotting-veg-pc
+#| label: plotting-aq-ins
 #| fig-height: 9
 #| fig-width: 9
 
-  title_text <- "Total Native Percent Cover Over Time"
-subtitle_text <- "NCOS vernal pool transects"
-
-caption_text <- "Vegetation survey data"
-
-
-### |- plot ----
-
-
-  ggplot(data = veg_pc,
-    mapping = aes(x = year, 
-                  y = mean_pc)) +
-
-  # Geoms
-  geom_line(linewidth = 1.3, color = "#4A9782", alpha = 0.9) +
-  geom_point(color = "#4A9782", size = 2, alpha = 0.8) +
-
-  # Scales
-  scale_x_continuous(expand = expansion(mult = c(0.01, 0.01))) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
-
-  # relabeling x- and y-axes, adding title
-  labs(x = "Year",
-      y = "Total Percent Cover",
-      title = "Total Native Species Percent Cover at NCOS 2021-25") +
-
-
-  # Theme (clean + stable)
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 16, face = "bold"),
-    plot.subtitle = element_text(size = 11),
-    plot.caption = element_text(size = 8),
-    axis.title = element_text(face = "bold")
+ostracods_plot <- ggplot(
+  data = ost_abundance,
+  mapping = aes(
+    x = site_full,
+    y = log_ave_lit
   )
+) +
 
-p
+  geom_hline(
+    yintercept = ring_log,
+    color = "lightgray"
+  ) +
+
+  geom_vline(
+    xintercept = 1:length(unique(ost_abundance$site_full)),
+    linetype = "dashed",
+    color = "gray30"
+  ) +
+
+  geom_jitter(
+    height = 0,
+    width = 0.1,
+    shape = 21
+  ) +
+
+  stat_summary(
+    geom = "point",
+    fun = "median",
+    size = 4,
+    color = "darkgreen"
+  ) +
+
+  scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
+
+  labs(
+    x = "Site",
+    y = "Average abundance/L",
+    title = "Ostracod Abundance"
+  ) +
+
+  coord_polar() +
+
+  theme_bw()
+
 ```
 
 ## 4. Describe your process
