@@ -202,6 +202,9 @@ ost_abundance <- aq_ins_clean |>
 #| fig-height: 9
 #| fig-width: 9
 
+y_max <- max(ost_abundance$log_ave_lit, na.rm = TRUE)
+ring_log <- pretty(c(0, y_max), n = 4)
+
 ostracods_plot <- ggplot(
   data = ost_abundance,
   mapping = aes(
@@ -230,8 +233,58 @@ ostracods_plot <- ggplot(
   stat_summary(
     geom = "point",
     fun = "median",
-    size = 4,
-    color = "darkgreen"
+    size = 2,
+    color = "lightblue"
+  ) +
+
+  scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
+
+  scale_y_continuous(
+    breaks = ring_log,
+    labels = round(exp(ring_log) - 1, 1)
+  ) +
+
+  labs(
+    x = "Site",
+    y = "Average abundance/L",
+    title = "Ostracod Abundance at NCOS During 2025 Water Year"
+  ) +
+
+  coord_polar() +
+
+  theme_bw()
+
+ostracods_plot
+ostracods_plot <- ggplot(
+  data = ost_abundance,
+  mapping = aes(
+    x = site_full,
+    y = log_ave_lit
+  )
+) +
+
+  geom_hline(
+    yintercept = ring_log,
+    color = "lightgray"
+  ) +
+
+  geom_vline(
+    xintercept = 1:length(unique(ost_abundance$site_full)),
+    linetype = "dashed",
+    color = "gray30"
+  ) +
+
+  geom_jitter(
+    height = 0,
+    width = 0.1,
+    shape = 21
+  ) +
+
+  stat_summary(
+    geom = "point",
+    fun = "median",
+    size = 2,
+    color = "lightblue"
   ) +
 
   scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
@@ -239,13 +292,14 @@ ostracods_plot <- ggplot(
   labs(
     x = "Site",
     y = "Average abundance/L",
-    title = "Ostracod Abundance"
+    title = "Ostracod Abundance at NCOS During 2025 Water Year"
   ) +
 
   coord_polar() +
 
   theme_bw()
 
+ostracods_plot
 ```
 
 ## 4. Describe your process
