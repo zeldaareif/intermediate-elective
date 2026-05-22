@@ -77,7 +77,7 @@ Sketch what your figure would look like following your inspiration.
 
 Insert that sketch (as a photo, screenshot, or otherwise) into your document.
 
-
+[ViewPDF]() 
 
 ## 3. Code your figure
 
