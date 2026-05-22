@@ -35,7 +35,6 @@ library(readxl)
 # data visualization
 library(naniar)
 library(patchwork)
-library(NatParksPalettes)
 library(gghighlight)
 library(paletteer)
 library(ggplot2)
@@ -71,13 +70,9 @@ This figure makes sense for the aquatic invertebrate data set because it allows 
 
 The plot will show average abundance/L of ostracods across NCOS locations, the x axis will be NCOS location and the y axis will be average abundance/L. Each jitter point will represent a different average abundance/L measurement, and the mean average abundance/L for each location will be highlighted with a different color to stand out. 
 
-## 2. 
+## 2. Sketching Figure
 
-Sketch what your figure would look like following your inspiration.
-
-Insert that sketch (as a photo, screenshot, or otherwise) into your document.
-
-[ViewPDF]() 
+[ViewPDF](https://github.com/zeldaareif/intermediate-elective/blob/main/code/plotplan.png.pdf) 
 
 ## 3. Code your figure
 
