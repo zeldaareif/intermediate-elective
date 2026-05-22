@@ -172,14 +172,6 @@ aq_ins_clean <- aq_ins |>
 = TRUE),
   site_full = fct_rev(site_full))
 
-
-# creating new object from clean aquatic inverts
-copepods <- aq_ins_clean |>
-  # filter to only include copepods
-  filter(taxon == "copepod") |>
-  # log + 1 transform mean abundance per liter
-  mutate(log_ave_lit = log(ave_lit + 1))
-
 ```
 
 ### Wrangling
@@ -206,102 +198,54 @@ ost_abundance <- aq_ins_clean |>
 #| fig-height: 9
 #| fig-width: 9
 
+# setting limits for ring plot, max values
 y_max <- max(ost_abundance$log_ave_lit, na.rm = TRUE)
 ring_log <- pretty(c(0, y_max), n = 4)
 
+# creating new plot
 ostracods_plot <- ggplot(
+  # inserting ostracod data frame
   data = ost_abundance,
+  # setting x axis as site and y axis as average abundance/L
   mapping = aes(
     x = site_full,
-    y = log_ave_lit
-  )
-) +
-
-  geom_hline(
+    y = log_ave_lit)) +
+  # setting ring geometry, color
+   geom_hline(
     yintercept = ring_log,
-    color = "lightgray"
-  ) +
-
+    color = "lightgray") +
+  # setting geometry for line for each site
   geom_vline(
     xintercept = 1:length(unique(ost_abundance$site_full)),
     linetype = "dashed",
-    color = "gray30"
-  ) +
-
+    color = "gray30") +
+  # setting geometry for jitter data points, sixe and shape
   geom_jitter(
     height = 0,
     width = 0.1,
-    shape = 21
-  ) +
-
+    shape = 21) +
+  # creating mean average abundance/L data point in different color
   stat_summary(
     geom = "point",
     fun = "median",
     size = 2,
-    color = "lightblue"
-  ) +
-
+    color = "orange") +
+  # displaying site names on x axis
   scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
-
-
   #scale y axis so bars don't start in the center
-  scale_y_continuous(limits = c(-1500, 3500),
+  scale_y_continuous(limits = c(-2, 8),
                      expand = c(0,0),
-                     breaks = c(0, 1000, 2000, 3000))+
-  
-  labs(y = "Average abundance/L",
-    title = "Ostracod Abundance at NCOS During 2025 Water Year"
-  ) +
-
-  coord_polar() +
-
-  theme_bw()
-
-ostracods_plot
-ostracods_plot <- ggplot(
-  data = ost_abundance,
-  mapping = aes(
-    x = site_full,
-    y = log_ave_lit
-  )
-) +
-
-  geom_hline(
-    yintercept = ring_log,
-    color = "lightgray"
-  ) +
-
-  geom_vline(
-    xintercept = 1:length(unique(ost_abundance$site_full)),
-    linetype = "dashed",
-    color = "gray30"
-  ) +
-
-  geom_jitter(
-    height = 0,
-    width = 0.1,
-    shape = 21
-  ) +
-
-  stat_summary(
-    geom = "point",
-    fun = "median",
-    size = 2,
-    color = "lightblue"
-  ) +
-
-  scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
-
-  labs(
-    x = "Site",
+                     breaks = c(0, 2, 4, 6))+
+  # labeling axes and setting title
+  labs(x = "",
     y = "Average abundance/L",
-    title = "Ostracod Abundance at NCOS During 2025 Water Year"
-  ) +
-
+    title = "Ostracod Abundance at NCOS During 2025 Water Year") +
+  # turning plot into a circle (polar coordinates)
   coord_polar() +
-
+  # changing theme
   theme_bw()
 
+#displaying plot
 ostracods_plot
 ```
 
