@@ -239,14 +239,13 @@ ostracods_plot <- ggplot(
 
   scale_x_discrete(labels = \(x) str_wrap(x, 15)) +
 
-  scale_y_continuous(
-    breaks = ring_log,
-    labels = round(exp(ring_log) - 1, 1)
-  ) +
 
-  labs(
-    x = "Site",
-    y = "Average abundance/L",
+  #scale y axis so bars don't start in the center
+  scale_y_continuous(limits = c(-1500, 3500),
+                     expand = c(0,0),
+                     breaks = c(0, 1000, 2000, 3000))+
+  
+  labs(y = "Average abundance/L",
     title = "Ostracod Abundance at NCOS During 2025 Water Year"
   ) +
 
